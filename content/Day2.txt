@@ -1,0 +1,270 @@
+
+\\192.168.0.34\Spark
+
+Stuff done on Day1
+
+1) What is Big Data
+2) What is Hadoop
+3) HDFS Architecture - File Read / File Write [ NN and the DN ]
+4) Use Cases of Hadoop
+5) Hadoop 2.7.2 setup in Ubuntu 14.4
+6) Location of the metadata and data
+7) File Injestion Example and changes it will do in data and metadata
+8) Spark Setup --> extracting scala and installing git
+
+==========================================================>
+
+Spark Attributes
+
+1) Distributed in memory processing - results in a faster in memory computing
+2) The basic abstraction is called RDD -- Resilient Distributed Dataset
+3) The data can be in HDFS, S3 or even a local system. It can also read data from NoSQL stores like HBase and Cassandra.
+4) Different workloads --> Spark Core, Spark SQL, Spark Streaming, Spark ML, Spark Graphx 
+5) It can be written in scala, python, java and R
+6) Resiliency is achieved through something called lineage
+7) It is evaluated in a lazy fashion --> transformations and actions
+8) It is immutable, where in a transformation results in a different RDD as the original RDD can never be changed
+9) It is Cacheable --> So if a subsequent request comes for a processing and the RDD is in memory, it will not run the whole transformation and skip it, it will pick it from the cache.
+10) Spark ResourceManagement / Cluster Manager can be
+	a) Standalone
+	b) YARN
+	c) MESOS
+
+https://spark-summit.org/east-2017/schedule/
+
+https://www.youtube.com/results?search_query=spark+summit
+
+2 Jobs --> Output of the first job should be a input to the second job
+
+			Map Reduce			Spark
+Read IO			YES				YES
+Output of the Map Phase	
+[written to the local
+node where processing 
+happens ]			Write IO
+Reducer Reading 		Read IO
+Output of the 
+reducer is written to 
+HDFD			Write IO
+
+Read IO for second Job	YES
+Map Write		Write IO
+Reducer Read		Read IO
+Reduce Write		Write IO				Write IO
+
+What is Map Reduce
+
+1) Programming Model - map phase [ pick what you want from a record ]  and reduce phase [ perform aggregations ]
+2) API --> for writing Map Reduce Programs in Hadoop MR
+3) Runtime --> Resource Manager and Node Manager
+
+https://0x0fff.com/wp-content/uploads/2015/03/Spark-Architecture-Official.png
+
+Terms used in Spark
+
+1) Driver --> Component of spark that will be on the client side.
+2) SparkContext will be running typically in the Driver Program
+3) Cluster Manager --> Coordinator for spark jobs
+4) Worked Node -> Physical Machines where spark jobs will be executed
+5) Executor --> Container where the processing actually happens --> It is reused.
+6) Cache --> Part of memory where the data is cached on every executor. Note: The data in the memory will be evicted based on LRU mechanism.
+7) Task --> Individual part of a job which is executed by the worker node.
+==========================================>
+
+Hive --> Framework which will allow you to write hiveQL queries. It has a hive compiler, which will convert the hive queries in to MR code.
+
+The schema in Hive is stored in the Derby database. The actual data is stored in HDFS.
+
+======================> Hands on 
+
+Things that will happen when we start a repl - scala repl
+
+1) start with the HTTP Server --> Jetty
+2) starts the sparkdriver
+3) Start the Spark UI
+4) starts the sparkcontext as sc
+5) starts the basics environment for hive [ HiveContext ]  as internally spark uses hive and Derby are the embedded database.
+6) starts the sqlContext.
+
+Intel Virtualization:- https://www.youtube.com/watch?v=3irpIFya_lk
+
+The data in memory is stored in partitions.
+
+1) loaded data in to RDD
+2) rdd.getNumPartitions -- to find out how many partitions is used by my RDD
+3) rdd.collect() -- to find the results of the RDD
+4) rdd.glom().collect() -- to show which data is in which partitions
+
+Then check the browser page for the 2 jobs which got created
+
+Click on a job and look at the DAG Visualization
+
+=====================> Post Tea
+
+flatMap --> This will flatten the results of a MAP
+map --> Any logic that will be applied to any element in a RDD.
+
+function --> Any business logic.
+Map --> Apply the function on every element in the RDD.
+
+val tfFlatMap = textFile.flatMap(line => line.split(" "))
+
+RDD
+	How are you
+	I am fine
+
+After applying the flatMap
+	How,1
+	are
+	you
+	I 	
+	am
+	fine
+
+
+scala> tfFlatMap.toDebugString --> Printing the lineage of the RDD
+res1: String =
+(2) MapPartitionsRDD[2] at flatMap at <console>:29 []
+ |  /input/sample MapPartitionsRDD[1] at textFile at <console>:27 []
+ |  /input/sample HadoopRDD[0] at textFile at <console>:27 []
+
+===============> After Map, we will have to perform aggregation and the functions that can be applied here is called reduceByKey
+
+After Map which stage is there --> Shuffle Phase --> In Spark, the shuffle phase will be perform first before doing any aggregation.
+
+What happens in shuffle phase? --> All values of the similar key is brought together. The end result will be in a structure --> Key,LIST[values]
+
+Array[Array[(String, Int)]] = Array(Array((How,1), (are,1), (you,1), (I,1), (am,1), (fine,1)), Array((How,1), (are,1), (you,1)))
+
+If we want to perform the reduceByKey --> It will perform shuffling first
+
+How[1,1,1,1]
+are [1,1]
+you[1,1]
+I[1]
+am[1]
+fine[1]
+
+Then it will call the business logic that we pass inside the reduceByKey(_ + _)
+
+========================>
+
+Note: 
+
+a) How a stage gets skipped --> look at the dag visualization in the count.glom().collect()
+b) glom() function is for checking what happens at the partition level
+
+===> count.saveAsTextFile("/input/countResult") --> This will save the result in HDFS
+
+What is a Stage in DAG Visualization? The set of tasks which can be executed parallely without a shuffling happening.
+
+The end result will be always based on the number of cores that we have and we will see multiple part files. If we need a single part file, we will have to use the coalesce function to reduce the number of partitions to 1 AND ASSIGN THIS TO ANOTHER RDD, as RDDs are immutable.
+
+val count1 = count.coalesce(1)
+
+=============================> Lunch Time
+
+http://stackoverflow.com/questions/34580662/what-does-stage-skipped-mean-in-apache-spark-web-ui
+
+http://blog.cloudera.com/blog/2015/03/how-to-tune-your-apache-spark-jobs-part-1/
+http://blog.cloudera.com/blog/2015/03/how-to-tune-your-apache-spark-jobs-part-2/
+
+Exercise: Work with the Word Count Example in Python
+
+1) Install JDK 1.7
+2) Extract the ScalaIDE in windows
+
+Know the difference between Scale WC and Python WC
+
+1) local [*] --> sc.master
+
+you are running in a local mode [cluster manager ] and * take all the core that is available at runtime.
+
+2) word lambda needs to written explicitly within the closure.
+
+Certifications --> 
+
+1) Cloudera CCA 175 --> Both Hadoop and Spark -- All hands on
+https://www.cloudera.com/more/training/certification/cca-spark.html
+
+2) Hortonworks Spark Certification --> 
+https://hortonworks.com/services/training/certification/exam-objectives/#hdpcdspark
+https://hortonworks.com/services/training/certification/hdp-certified-spark-developer/
+
+http://hadoopexam.com/
+================================================>
+
+glom()
+getNumPartitions
+toDebugString
+
+4040 --> How the DAG is created.
+
+============================> If not in a REPL mode, how can we execute scala job via batch mode --> spark-submit.
+
+1) Scala Object is a singleton.
+
+--> Conf directory in winscp for spark
+--> rename log4j.properties.template to log4j.properties
+--> In the changed file --> rootCategory from INFO to ERROR
+
+=============================>
+
+Difference between Latest Bundle and Fixed Scala Library --> http://scala-ide.org/blog/scala-installations.html
+
+How to Add a Assembly jar to the Scala Project -->
+
+1) Move the assembly.jar to a local location in windows.
+2) In eclipse, right click on the project - Properties - Java Build Path - Libraries Tab - Add External Jar and select the jar file which you moved to windows
+
+
+How to submit spark jobs programatically --> http://henningpetersen.com/post/22/running-apache-spark-jobs-from-applications
+
+============================> Post Evening Tea Break
+
+--> Spark Basics
+--> Word Count in Scala
+--> Word Count in Python
+--> Line Count in Scala via Spark-Submit
+
+============================================>
+
+--> https://spark.apache.org/docs/1.6.2/
+
+Diff between reduceByKey and aggregateByKey --> http://codingjunkie.net/spark-agr-by-key/
+
+DAG --> Directed Acyclic Graph.
+
+https://databricks.com/blog/2015/04/28/project-tungsten-bringing-spark-closer-to-bare-metal.html
+Transformations
+
+1) map
+2) filter
+3) flatmap
+4) groupBy
+5) groupByKey
+6) reduceByKey
+ --> which one should i prefer --> Always prefer reduceByKey [ as it reduces the amount of data to be shuffled ]
+7) mapPartition
+8) mapPartitionWithIndex
+9) sample
+10) union
+11) join
+
+===================================> To be done tomorrow.
+
+12) distinct
+13) coalesce
+14) keyBy
+15)partitionBy
+16)zip
+
+http://stackoverflow.com/questions/31137194/what-is-scalas-product-productiterator-supposed-to-do
+
+
+
+
+
+
+
+

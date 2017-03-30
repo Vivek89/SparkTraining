@@ -1,0 +1,408 @@
+The Shared location:- \\192.168.0.20\d$\Spark
+
+1) Copy the Day1 folder to your local system
+2) In your d:\  or in your c:\New Folder --> You should have a folder called Ubuntu14.4_2017. This contains the VMWare image that we will be working with.
+
+House Keeping
+
+1) Hard start --> 10.05
+2) First break --> 11.45 for 15 min
+3) Lunch time --> 1.30 ~ 1.45 for 45 min
+4) Second break --> 3.45 ~ 4.00 for 15 min
+5) Wrap up by 5.45 -->
+
+Pre-Req Video Watching --> max 1 hour
+
+https://rise.cs.berkeley.edu/ --> Reference Data
+
+=====================> Courses offered by L&D Team
+
+1) Hadoop Developer --> Level 0
+	Big Data & Hadoop
+	Map Reduce
+	Hive
+	Pig
+	Sqoop
+	NoSQL & HBase
+
+2) Spark & Storm --> Level 1
+	Big Data Basics
+	Setting up Hadoop 2.7.1 - Single Node Cluster
+	What is Spark and Its Benefits
+	Spark RDD - Transformation & Actions
+	Spark SQL
+	Spark Streaming
+	Kafka
+	Apache Storm
+	** If time permits --< Basics of ML with Spark
+
+JPMIS --> Infra team --> Provides Multi Tenant Hadoop Environment -- 8 PB --> 500 Nodes - each node having 6 TB of Storage
+
+Traditional Systems --> Currently
+
+1) RDBMS
+2) DWH - Teradata, Netezza, Oracle, Sybase IQ
+3) ETL --> Informatica, Data Stage, Abnitio, Pentaho
+4) Visualization --> QlikView, Tableau
+
+	OLTP			v.s		OLAP
+
+	Transactional				Analytical	
+	sub second response			Delayed 
+	RDBMS					DWH
+	Real Time					Batch
+	NoSQL					Hadoop
+
+Big Data - Data Lake Environment
+
+1) Storage -- HDFS -- Hadoop Distributed File System 
+2) Processing
+		Map Reduce Style				Spark Style
+
+Programming	Map Reduce				core RDD
+SQL		Hive					Spark SQL
+Scripting		Pig					Core RDD
+Streaming		Apache Storm [ Real Time ]			Spark Streaming [NRT ]
+
+2003 --> GFS white paper -> Sanjay Ghemawat
+2004 --> MR white paper --> Jeff Dean
+2006 --> Doug Cutting --> ASF
+2007 --> Yahoo -- Pig
+2007 --> Big Table White paper
+2008 --. HBase 
+2009 --> Facebook  -- Hive
+2012 --> Matie Zaharia --> Berkeley University --> Spark
+2014 --> Spark --> ASF
+
+=====================> 3 v's of Big Data
+
+1) Volume --> Size of data --> 
+2) Velocity --> Rate of data Arrival --> Transactional data volume is high throughput
+	--> AML
+	--> Fraud Analytics
+3) Variety --> 3 types of Data
+
+	a) Structured	--> schema aware, fixed cols.
+	b) Semi-Structured	--> logs, emails, blogs, json
+	c) Un Structured
+		Video 	--> CCTV images
+		Audio	--> Call Center discussions
+		Images	--> Scanned Cheques, Documents
+
+Big Data:- Big data is a term for data sets that are so large or complex that traditional data processing application software is inadequate to deal with them. 
+
+Challenges include capture, storage, analysis, data curation, search, sharing, transfer, visualization, querying, updating and information privacy
+
+Hadoop --> Framework for 2 things
+
+	a) Storage      --> HDFS
+	b) Processing --> Map Reduce
+
+Why Hadoop?
+
+1) TCO
+2) Open Source Capability
+3) Ability to Tweak the component to our advantage.
+
+Apache Hadoop 
+a) is an open-source software framework
+b)  used for distributed storage and 
+c) Distributed processing of big data sets using the MapReduce programming model. 
+d) It consists of computer clusters built from commodity hardware
+
+Distributed Storage and Processing
+
+				1 TB of data		
+
+	1 System					10 Systems
+	4 HDD
+speed	100 MB / sec
+
+How much time will it take 
+--> 	43 min					--> 4.3 min
+	1024*1024 / (100*4*60)
+
+What was our assumption
+
+1) When the data is injested in to the cluster - it is distributed across all systems --> HDFS
+2) When the processing happens, the code goes to the data and the processing happens on the individual systems. Who will bring together the data processed individually on every system --> Map Reduce
+
+HDFS Basics -->
+
+1) Master - Slave Arch --> Master [ Server Grade  Systems ], Slaves [ commodity systems -- No Dual Power supply, no RAID, Limited Storage, Limited memory ] 
+
+2) Block --> Unit of data which can be read / written in one go. 
+	Block Size in Linux --> 4k -  512 k
+	Block Size in Linux
+		Gen1 --> 64 MB
+		Gen2 --> 128 MB
+
+3) How is redundancy built it ? Via Replication --> Every block will be available - 3 times. This is tunable at the file level granurality.
+
+Note: The data is distributed based on size.
+
+	Example -- Log data [ 500 MB ]
+	
+	128		128		128		116
+
+Processing --> Identify what is a record and each record is processed parallely in different nodes.
+
+	Example -- Video data [ 500 MB ]
+
+	128		128		128		116
+
+How many records? 1 record.
+Will there be parallel processing in the case of video here? NO
+
+What is Hadoop --> Is it ELT ot ETL ? It is Extract -- Load the data -- Transform
+
+Hadoop : The access pattern is WORM --> Write Once Read Many
+
+=========================> File Injestion Example
+
+Client A: Outside the cluster. --> 200 MB file name --> sample --> which needs to be put in to the cluster.
+
+Cluster of 10 nodes.
+				Master [NN ]
+
+1	2	3	4	5	6	7	8	9	10
+128	72		128	128		72		72
+
+1) Client should talk to the master. How will the client know who is the master? 
+
+	a) hadoop setting on the client which will give the master IP.  OR
+	b) EDGE Node. http://www.dummies.com/programming/big-data/hadoop/edge-nodes-in-hadoop-clusters/
+
+2) What will be the masters response to the client request? The master will do authentication and authorization. 
+	Master will give the write pipeline information to the client.
+	128[ __, __, __ ]
+	   72[__, __, __]
+
+3) How will the first node for every block decided? Based on the network proximity between the client and the slaves and then the availability is also considered.
+
+4) Will both the blocks go to 1 Node. By Default the data is spread horizontally.
+	128[ 1, __, __ ]
+	   72[ 2, __, __]
+
+5) How will the other nodes be decided? Not based on Proximity but only availability. 
+	128[ 1, 4, 5 ]
+	   72[ 2, 7, 9]
+
+Assuming all of them are free, we have chosen it randomly now.
+
+6) Will the client write the data parallely to Node1 and Node2? YES.
+
+7) Will the client write to all the nodes in the pipeline? No. It will only write to the first node for every block.
+
+8) When will replication start? Immediately while the writing happens on the first node for every block. Node1 will give it to 4 and 4 will give it to 5.
+
+9) When will the client inform the master of the file write being complete? After the write + replication is done and the reverse checksum information is received by the node 1 [ Node 5 giving to Node 4 and Node 4 giving to Node 1 ]
+
+What is HDFS ? IS it a physical file system or a Virtual File System.
+
+====================================> File Read
+
+				Master [NN ]
+
+1	2	3	4	5	6	7	8	9	10
+128	72		128	128		72		72
+					
+					Client B -> Read the file Sample
+					Talk to the Master / Edge Node
+					Will give him IPs based on Proximity & Avail
+					5,4,1
+					7,9,2
+
+What will happen traditionally if a node goes down --> The client will have to resubmit and do all the reading again [ whole 200 MB ]
+
+In hadoop, if node 7 goes down. What will happen? The client will pick the data from second node in the list and not make a fresh request to the Master.
+
+==================================> Pre Flight Check up
+
+1) Image ready
+2) Desktop - vmware is installed
+3) load the image and do the settings.
+
+To toggle Library tab --> View - Customize - Library
+
+To load the image --> File - open virtual machine
+
+1) The credentials
+
+username: notroot
+password: hadoop123
+
+2) Open the Hadoop setup document in Day1 --> the password for the pdf file are hdp.
+
+3) Go inside /home/notroot and check the contents of the downloads directory and the lab directory.
+
+Deamons in Hadoop
+
+			Storage			Processing
+			HDFS		Map Reduce	YARN
+
+Master			Namenode			ResourceManager
+Slave			Datanode				NodeManager
+			SecondaryNN
+
+
+Exercise: Setting up Hadoop Environment --> Step 1 to 8
+
+a) You can work with Putty --> ifconfig is how you will get the IP
+b) You can install winscp --> connect and double click to edit a file
+
+To show hidden Files --> Options - Preferences - Panels --> show hidden files
+
+End Result --> We have confirmed that java and hadoop is installed.
+
+========================================> Post Lunch
+
+Failure Use Case
+
+A] While Writing
+
+--> Primary Node:1 and 2 --> Node 1 goes down after 100 MB of data is written. 
+1) Will the client be aware of the failure? Yes.
+2) What should the client do now? Resubmit his request.
+3) Should the complete 200 MB be written again or not? YES. When the client communicates with the master again, the master will send another set of IPs.
+4) What will happen to the 72 MB of data that is written and replicated and the 100 MB of data that is replicated for the 2nd and the 3rd copy? This will be junk / orphaned / zombied data, which needs to explicitly removed by the admin -- fsck
+
+--> Replicated Nodes: Node 5 goes down after 100 MB of data is written.
+
+1) Will the client be aware of the failure? No
+2) How will the framework recover from this error? The master will pick another node on which the data can be written and will inform the earlier node in the pipeline to write the full block again.
+
+B] After Writing				
+					
+Any node goes down. 
+
+Traditional Environment --> Manual Intervention
+In Hadoop --> No. The frame work will handle by assigning another node for all the blocks in the failed node and the nodes from where copying will happen will also be done by checking the resources.
+
+What happens when a failed node comes back again --> Limit of 10 min
+
+1) If it comes back within 10 min --> there might be a over replicated block situation.
+2) If it comes back after 10 min --> All the blocks in the node is invalidated. 
+
+Data Corruption --> Hadoop does auto recovery.
+
+============================================================>
+
+What are the different component home settings that we did in our .bashrc
+
+1) Hadoop
+2) HDFS + mapred + YARN
+3) Common --> Which is for the different eco-system components.
+
+hdfs dfs --> press enter --> will give the list of linux commands that is possible on HDFS.
+
+Exercise 2: Start with Step 9 till 12.
+
+--> Go to winscp and copy the hadoop tar file from downloads to your windows location
+--> Extract hadoop in windows
+
+We are going to setup a Pseudo Cluster in which we will have both master + slave + client.
+
+4 Node cluster
+
+	Master {	NN	SNN	RM	}
+
+	Slaves   { DN+NM	DN+NM	DN+NM	DN+NM	}
+
+	Edge Node --> Active - Passive [ Will have no hadoop daemons running ]
+
+Install Notepad++ in windows.
+
+Go to the share directory in the hadoop extracted location in windows and search for *-default.xml
+2 types of XML files in Hadoop
+
+	XXX-default.xml			XXX-site.xml
+
+Exercise 3: Step 13 onwards till step 17.
+
+hadoop namenode -format --> so that the necessary metadata files will be created in the namenode directory in lab/hdfs. Look at the current folder.
+
+Holden - Spark --> https://www.youtube.com/watch?v=0KGGa9qX9nw
+
+============================================> Post Tea
+
+Step 18 --> start a new daemon process called Job History Server --> maintaining the list of completed jobs.
+
+Step 19 --> Check the HTTP URLs for different components
+
+NN --> 50070
+Job History Server --> 19888
+SNN --> 50090
+Resource Manager --> 8088
+
+location of the data and the metadata of the hadoop cluster. -> Steps 21 & 22
+
+The files in the namenode/current directory are
+
+1) edits_inprogress_XX --> Redo log
+2) edits_XXX_XXX --> Redo logs for transaction range which is committed
+3) fsimage --> snap shot of the FS at a point of time
+4) fsimage with .md5 --> Checksum for the fsimage
+5) seen_txid --> contain the transaction from where checkpoint has to be done
+
+Where is the metadata of hadoop stored ?
+
+1) In the main memory of the NN	PLUS a persisted copy is present in 
+2) namenode/current directory
+3) a copy of the metadata will be present in the SNN location
+
+What is checkpoint? --> Process of applying edits_inprogress with the fsimage.
+
+--> Injest a file in to HDFS --> 
+
+	a) It will have the metadata[location for the nodes ] stored in memory.	AND
+	b) It will make an entry of this in edits_inprogress file
+
+When we start out services what will happen?
+
+1) It will perform checkpointing.
+
+Does checkpointing happen only when a reboot happens. No.  It is done periodically and the duration is 1 hour [ 60 min ] by default.
+
+---> Step No: 23 --> Note the input directory can be viewed only from HDFS, because it is a virtual and not a physical directory.
+
+2 ways of checking the contents of HDFS
+
+hdfs dfs -ls / 	OR
+Via the Browse the File System
+
+Exercise --> Till Step 26.
+
+=======================================================>
+Exercise --> Install Scala, Git and spark
+REPL --> Interactive Mode -- Read Evaluate Print Loop -->
+
+Before git installation --> sudo apt-get update --> This will get the required files for the installation from the repository.
+=========================================================>
+
+Use Cases of Hadoop
+
+1) http://www.business-standard.com/article/international/avinash-iragavarapu-the-indian-who-helped-donald-trump-win-arizona-116111000492_1.html
+
+2) http://www.datasciencecentral.com/profiles/blogs/how-uber-uses-spark
+
+3) https://wiki.apache.org/hadoop/PoweredBy
+
+4) https://www.cloudera.com/more/customers.html
+
+=========================================================>
+
+1) exit --> come out of the spark shell
+2) stop-all.sh
+3) stop the job history server --> step no 18
+4) Ensure that the VM is powered off
+
+Pre-Req for tomorrow
+
+--> Watch the Spark Intro Video:- https://www.youtube.com/watch?v=aKFnfSbNkm4&t=324s
+
+https://rise.cs.berkeley.edu/projects/ground/ --> Reference Data Implementation.
+
+
+
+

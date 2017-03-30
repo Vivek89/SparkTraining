@@ -1,0 +1,192 @@
+\\192.168.0.9\Spark
+
+Stuff done on Day1
+
+1) What is Big Data
+2) What is Hadoop
+3) HDFS Architecture - File Read / File Write [ NN and the DN ]
+4) Use Cases of Hadoop
+5) Hadoop 2.7.2 setup in Ubuntu 14.4
+6) Location of the metadata and data
+7) File Injestion Example and changes it will do in data and metadata
+8) Spark Setup --> extracting scala and installing git
+
+==========================================================>
+
+Stuff on Day2
+
+1) Attributes of Spark, Why Spark
+2) Word Count Walkthrough in Scala REPL
+3) Word Count in Python REPL
+4) Word Count in Scala IDE using spark-submit
+5) Transformations -- 11 transformations
+
+AWS Multi node Setup: https://www.youtube.com/watch?v=LjXXB4IXgu8&t=241s
+Zarantech
+
+===================================> Plan for Day 3
+
+MOOC courses --> coursera, edx
+
+1) Complete the balance 5 transformations
+2) Look at actions
+3) Word Count in Java via Eclipse and spark-submit
+4) Small POC --> couple of example
+5) Setting up the Jupyter Note
+6) Spark SQL + Dataframes
+
+==================================================>
+
+12) distinct
+13) coalesce
+14) keyBy
+15)partitionBy
+16)zip --> Headers seperate and the data seperate in different files. To merge both of them together we will use zip.
+
+What is a partitioner --> Shuffling -- How is shuffling done
+
+Map Phase	--> key, value
+
+Shuffle Phase	--> All the values for the similar keys are brought together. --> Distinct
+GroupBy	--> customize the partitioning logic
+
+Reduce Phase	--> aggregation of the values for a particular key
+
+Python API --> https://spark.apache.org/docs/1.6.1/api/python/index.html
+
+=============================> Post Tea
+
+--> Look at actions as an exercise. However focus on reduce which returns a result as NOT a RDD but  as a parallelized collection.
+
+
+-> Work with the Java Word Count Example -- Test
+
+Extending RDD class for additional functionality --> http://blog.madhukaraphatak.com/extending-spark-api/
+
+Running Sum of values --> https://bzhangusc.wordpress.com/2014/06/21/calculate-running-sums/
+
+===============================> Working with the Small POC
+
+The password for the Advance RDD PDF is 123.
+
+flightRdd=sc.textFile("/input/flights.csv").map(lambda line: line.split(","))
+
+carrierRdd = flightRdd.map(lambda line: (line[5],1)) 
+
+ReducedRdd = carrierRdd.reduceByKey(lambda a,b: a+b) 
+
+carriers = ReducedRdd.map(lambda (a,b): (b,a))
+
+carriersSorted = carriers.sortByKey(ascending=False).take(3)
+
+Result:- [(87, u'NW'), (85, u'WN'), (62, u'AA')]
+
+Scala Code:-
+
+val sortCarrierRdd = reduceCarrierRdd.sortBy(pair => pair._2,false)
+
+reduceCarrierRdd.map(pair => (pair._2,pair._1)).take(2)
+
+=================> Post Lunch --> Starting with the Jupyter Install
+
+https://machinelearningmastery.com/machine-learning-with-python/
+
+Siraj Raval --> Machine Learning Video's --https://www.youtube.com/channel/UCWN3xxRkmTPmbKwht9FuE5A
+
+Start with the Spark SQL
+
+--> Hive --> Framework where the schema is stored in derby by default and the data is in HDFS.
+The language used in HiveQL
+
+Hive					HDFS
+
+table - Internal Table				Folder in HDFS
+					/user/hive/warehouse
+
+rows					files within the table folder.
+
+If you want to access in a GUI fashion the Derby database --> Squirrel
+
+create table --> create a folder in HDFS
+
+load --> internally call -copyFromLocal and copy it to the table folder
+
+Slide 8 --> Working with sqlContext --
+
+Note: It is important to note that when we start with spark shell --> it we are using sqlContext.sql then there will be a folder called metastore_db which will contain the meta data information.
+
+After table is created --> check in 50070 - browse the file system to check if the customer folder is created
+
+After loading the data --> check in 50070 - browse the file system to check if the file is present inside the customer folder.
+
+Spark SQL has a inbuilt optimization called Catalyst --> https://www.youtube.com/results?search_query=spark+catalyst
+
+Slide 12 --> Working with python now after exiting spark shell and checking if the customer table created earlier via scala can be retrieved using python. Note run pyspark in the folder where you had executed spark shell
+
+If you want to see the same using Jupyter then:-
+from pyspark.sql import HiveContext
+hive_context = HiveContext(sc)
+bank = hive_context.table("customer")
+bank.show()
+
+Slide 14,15 --> Working with json and csv files in Scala
+
+Slide 18 --> Convert the RDD in to a DataFrame
+
+Now we will continue to work with jupyter for other examples
+
+1) Slide 16 --> 2 diff ways of creating a DF from a RDD
+
+2) Slide 17 --> creating a DF from a text file
+
+3) Slide 20 --> creating 2 basic DFs for working with all the DF operations. Copy the code from createdata.ext to avoid typos.
+
+	Work from slide 21 to 47
+
+======================================================>
+
+Slide 16 in Scala :-
+
+import org.apache.spark.sql.Row;
+
+val b = 
+  Array(     Array("Alice", "12", "80"),      Array("Bob", "15", "120"))
+val rdd = sc.makeRDD(b)
+case class Y(Name: String, Age: String, Height: String)
+  val df1 = rdd.map { 
+  case Array(s0, s1, s2) => Y(s0, s1, s2) }.toDF()
+  df1.printSchema()
+  df1.show()
+
+========================================================>
+
+Programmatically Specifying the Schema --> Check in the spark docs for various imports.
+
+https://spark.apache.org/docs/1.6.2/sql-programming-guide.html
+
+Plan for Tomorrow
+
+--> What is Streaming --> 
+--> Spark Streaming
+--> Apache Storm
+--> Kafka - setup it --> 2 node broker
+--> Basics of ML
+
+--> POC -- Datasets
+--> Plan for certifications --> CCA 175
+
+To get a distinct of a specific column --> val distinctValuesDF = df.select(df("age")).distinct
+
+====scala 
+case class Customer( cid:String, name:String, age:Int, state:String)
+case class Product  ( cid:String, date:String, product:String, price:Int)
+val df1 = sc.parallelize( Array (Product("101", "Alice", 25, "ca"),Product("102", "Bob", 15,"ny"),Product("103", "Bob", 23, "nc"),Product("104", "Ram", 45, "fl"))).toDF()
+val df2 = sc.parallelize( Array (Product("101", "2015-03-12","toaster", 200),Product("104", "2015-04-12","iron", 120),Product("102", "2014-12-31","fridge", 850),Product("102", "2015-02-03","cup", 5))).toDF()
+
+
+
+
+
+
+
+
