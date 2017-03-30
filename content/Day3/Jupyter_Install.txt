@@ -1,0 +1,30 @@
+Move the Anaconda3-4.0.0-Linux-x86_64.sh to /home/notroot/downloads by ensuring that you are using the binary mode for transfer.
+Winscp - Options - Preferences - Transfer - Double Click on Default --> Change the Transfer Settings to Binary Radio Option.
+
+1) Install Anaconda from downloads dir--> bash Anaconda3-4.0.0-Linux-x86_64.sh
+2) In .bashrc make changes and execute it.
+export PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH 
+export PYTHONPATH=$SPARK_HOME/python/lib/py4j-0.9-src.zip:$PYTHONPATH
+
+Confirm that this line is added by the Anaconda Installer
+export PATH="/home/notroot/anaconda3/bin:$PATH"
+
+4) check for --> conda --version
+5) conda update conda 
+6) conda update ipython
+7) conda install jupyter
+
+jupyter notebook --ip=TheVMIP
+
+Go to the browser --> http://THEVMIP:8888
+
+	Click on the New DropDown and select Python3
+In the cell that comes up, you can type --> For executing you will press Shift + Enter
+from pyspark import SparkContext
+sc =SparkContext()
+
+================>  Spark - Transformation + Actions
+
+
+
+
