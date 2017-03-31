@@ -1,0 +1,17 @@
+import org.apache.spark.sql.types._	//Importing StructField and StructType
+import org.apache.spark.sql._		//Importing Row
+
+//Creating RDD
+val rdd = sc.parallelize(Array(Array("Alice","12","80"),Array("Bob","15","120")))
+
+//Converting RDD[Array(String)] to RowRDD
+val rowRDD = rdd.map(_.mkString(",").split(",")).map(attributes => Row(attributes(0), attributes(1), attributes(2)))
+
+//Creating schema using StructType
+val schemaString = "name age height"
+val fields = schemaString.split(" ").map(fieldName => StructField(fieldName, StringType, nullable = true))
+val schema = StructType(fields)
+
+//Creating Dataframe
+val df = sqlContext.createDataFrame(rowRDD, schema)
+df.show()
