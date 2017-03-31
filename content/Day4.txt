@@ -1,0 +1,192 @@
+\\192.168.0.8\Spark
+
+venkatkrishnan@vsnl.net
+
+Stuff done on Day1
+
+1) What is Big Data
+2) What is Hadoop
+3) HDFS Architecture - File Read / File Write [ NN and the DN ]
+4) Use Cases of Hadoop
+5) Hadoop 2.7.2 setup in Ubuntu 14.4
+6) Location of the metadata and data
+7) File Injestion Example and changes it will do in data and metadata
+8) Spark Setup --> extracting scala and installing git
+
+==========================================================>
+
+Stuff on Day2
+
+1) Attributes of Spark, Why Spark
+2) Word Count Walkthrough in Scala REPL
+3) Word Count in Python REPL
+4) Word Count in Scala IDE using spark-submit
+5) Transformations -- 11 transformations
+
+AWS Multi node Setup: https://www.youtube.com/watch?v=LjXXB4IXgu8&t=241s
+Zarantech
+
+===========================================================> 
+
+Stuff on Day3
+
+1) Finished with the balance 5 transformations & worked with the reduce action
+2) Setup Jupyter Notebook
+3) WordCount in Java
+4) Worked with the Small POC [ till part 3, balance 4,5,6 needs to be tried out ]
+5) Working with Spark SQL - creating a table and checking in HDFS where it is stored.
+6) Worked with the JSON, CSV and creating a DF via Scala
+7) Created a DF via python [createDataFrame and toDF ] 
+8) Created 2 DF and saw the various functions possible including the UDF [ slide 21 to 47 ]
+
+=================================================================>
+
+Cache v/s Persist
+https://spark.apache.org/docs/1.6.2/programming-guide.html#rdd-persistence
+
+https://ignite.apache.org/
+
+https://www.coursera.org/courses?languages=en&query=data+science
+
+http://spark.apache.org/powered-by.html
+
+=====================================================================>
+
+Computing in Hadoop 	--> YARN [ Yet Another Resource Negotiator ]
+
+daemons		--> Resource Manager - Master
+		--> Node Manager - Slave
+
+--> hadoop jar name.jar package.classname parametersfortheclass
+
+1) The request from the client goes to the Resource Manager
+2) The RM will assign a ApplicationMaster for that application / job. It is the responsibility of the ApplicationMaster to manage the life cycle of the applications. --> AM is running in a container.
+3) The AM will get the code [ jar ]that was submitted by the client. [ Note. The code goes to data ]
+4) Based on the code, the AM will request the RM to identify the nodes where the processing will happen.
+5) The RM will in turn communicate with the NN to get the nodes where the blocks are and this information will be passed to the RM and then to the AM.
+6) The AM will request the Node Manager to start the container for the map process on the nodes where the data is. 
+7) Once the mapper is finished the AM will check with the RM to identify a node which is available.
+8) Then the AM will communicate with the NM on the node which is available to start the Reducer Container.
+--< Note the Mapper and Reducer container will inform the AM of the state of processing, because it is the responsibility of the AM to manage the life cycle of the application. 
+
+RM High Availablity --> http://hadoop.apache.org/docs/current2/
+
+======================================================> Streaming
+
+Real Time --> AS and when the tuple arrives, it should be processed --> Apache Storm
+http://storm.apache.org/
+
+Spout --> Which is the source of Data
+Bolt --> Which is the processing component.
+Topology --> A set of spouts and bolts.
+
+Near Real Time -->Micro Batch [ Batch duration can be as low as a minute ] --> The batch will be executed as and when the duration is finished.
+https://spark.apache.org/docs/1.6.2/streaming-programming-guide.html
+
+2 parts of Spark Streaming
+
+1) Source from where the data will be emitting
+2) Creation of the DStream and the logic
+
+Exercise: Working with the Spark Streaming Lab --> 
+
+==========================> Post Morning Tea
+
+Exercise : Working with Spark Submit --> Scala code --> Via eclipse
+
+DStream logic in scala --> FirstStreaming.scala
+
+Client Application in java --> ClientApp.java
+
+https://www.brighttalk.com
+
+===================== Real Time Aspects --> Apache Storm
+
+Lambda Archi--> https://mapr.com/developercentral/lambda-architecture/assets/otherpageimages/lambda-architecture-2-800.jpg
+
+Physical Components in Storm
+
+1) Nimbus		--> 	Master
+2) Supervisor	-->	Slave
+3) Zookeeper	--> 	Co-ordination
+4) Storm UI	--> 	50070
+
+https://wiki.apache.org/hadoop/ZooKeeper/PoweredBy
+
+https://zookeeper.apache.org/
+
+Spark Lint: Monitoring Component - https://www.youtube.com/watch?v=reGerTzcvoA
+
+Apache Storm Setup.
+
+nimbus
+QuorumPeerMain
+supervisor
+core
+
+https://raw.githubusercontent.com/hortonworks/data-tutorials/da865fb3e8e8bf7998c9651bc4010ea97a6f50b4/tutorials/hdp/hdp-2.5/realtime-event-processing-in-hadoop-with-nifi-kafka-and-storm/assets/concepts/07_hadoop_cluster.png
+
+Apache Storm Exercise :- Code the Word Count
+
+===================> Post Lunch
+
+Till Now
+
+1) Hadoop Basics + HDFS + Setup + Handson in HDFS + Spark Setup
+2) Spark Core + Transformations + Actions + Jupyter Setup
+3) Spark SQL
+4) Spark Streaming + Apache Storm
+
+	Pending 	--> Kafka + setup of Kafka
+		--> Spark ML with a quick Example
+
+kill -9 PID [ nimbus core supervisor ]
+zkServer.sh stop
+stop-all.sh
+mr press tab --> stop history server
+
+=============================================================>
+
+Kafka Components --> 2 Brokers running on the same Node.
+
+1) Zookeeper
+2) Through Kafka - start the 2 brokers [ port, brokerid, logs.dir ] -> can be in background
+3) Through Kafka - start the topic --> can be in background
+4) Through Kafka - start the producer --> SHOULD not be in background
+5) Through Kafka - start the consumer --> see the result in the consumer
+6) Through Kafka - start the 2nd consumer --> can view only the new result
+7) Through Kafka - start the 3rd consumer --> view everything in the topic
+
+DataSets for POC
+
+1) https://www.kaggle.com/competitions
+2) https://data.gov.in/catalogs
+3) https://www.data.gov/
+
+Analyse the dataset of your choice --> answer atlest 8 - 10 questions on each dataset
+
+--> Spark Core
+--> Spark SQL
+--> Spark Streaming + Kafka
+
+-- Sample POC
+	MR
+	Hive
+	Pig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
