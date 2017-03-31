@@ -176,3 +176,47 @@ Analyse the dataset of your choice --> answer atlest 8 - 10 questions on each da
 	
 	
 FeedReader	
+
+=================== My Codes =======================
+
+hdfs namenode -format -clusterId CID-d5c28005-ce34-48c6-a2e5-eeb2fcbb31e5
+
+flightRdd = sc.textFile("/vivek/data/flights.csv").map(lambda line:line.split(","))
+
+carrierRDD = flightRdd.map(lambda line: (line[5], 1))
+reducedRDD = carrierRDD.reduceByKey(lambda a,b: a + b)
+reversedRDD = reducedRDD.map(lambda(a,b):(b,a))
+sorted = reversedRDD.sortByKey(False)
+sorted.take(5)
+
+
+sqlContext.sql("CREATE TABLE IF NOT EXISTS customer (id INT, name STRING, city STRING, state STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'")
+
+sqlContext.sql("LOAD DATA LOCAL INPATH '/vivek/data/customer.csv' INTO TABLE customer")
+sqlContext.sql("LOAD DATA LOCAL INPATH '/home/notroot/data/customer.csv' INTO TABLE customer")
+
+val result = sqlContext.sql("From customer select id, name, city")
+result.show()
+
+val result1 = sqlContext.table("customer").select ("id", "name", "city")
+result1
+
+from pyspark import SparkContext
+sc =SparkContext()
+
+from pyspark.sql import SQLContext
+sqlC =SQLContext(sc)
+
+from pyspark.sql import HiveContext
+hive_context = HiveContext(sc)
+bank = hive_context.table("customer")
+bank.show()
+
+
+from pyspark.streaming import StreamingContext
+ssc = StreamingContext(sc, 5)
+iDS= ssc.socketTextStream("192.168.136.128", 9999)
+wc = iDS.flatMap(lambda line : line.split(" ")).map(lambda word: (word, 1)).reduceByKey(lambda a,b: a+b)
+wc.pprint()
+sc.setLogLevel("ERROR")
+ssc.start()
